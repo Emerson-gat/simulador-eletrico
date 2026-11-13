@@ -6,7 +6,6 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(r"C:\simulador_eletrico")
 
 from calculos import calcular_corrente, calcular_potencia
 from biblioteca_equipamentos import equipamentos
@@ -22,17 +21,21 @@ st.set_page_config(
     layout="wide"
 )
 
+
 def autenticar_firebase(email, senha, api_key, modo="login"):
     endpoint = "signInWithPassword" if modo == "login" else "signUp"
-    url = f"https://googleapis.com:{endpoint}?key={api_key}"
+    base_auth = "https://googleapis.com"
+    url = f"{base_auth}:{endpoint}?key={api_key}"
     payload = {"email": email, "password": senha, "returnSecureToken": True}
     resp = requests.post(url, json=payload, timeout=10)
     return resp.status_code == 200, resp.json()
 
+
 def salvar_log_firestore(project_id, id_token, usuario, dados_simulacao):
     if not project_id or not id_token:
         return False
-    url = f"https://googleapis.com{project_id}/databases/(default)/documents/simulacoes"
+    base_db = "https://googleapis.com"
+    url = f"{base_db}/{project_id}/databases/(default)/documents/simulacoes"
     headers = {"Authorization": f"Bearer {id_token}"}
     doc = {
         "fields": {
@@ -47,6 +50,7 @@ def salvar_log_firestore(project_id, id_token, usuario, dados_simulacao):
         return r.status_code in (200, 201)
     except Exception:
         return False
+
 
 if "logado" not in st.session_state:
     st.session_state.logado = False
@@ -66,8 +70,10 @@ if not st.session_state.logado:
 
             with aba_config:
                 st.info("Cole os dados do seu projeto Firebase para ativar login e Firestore.")
-                api_key_input = st.text_input("Firebase Web API Key", type="password")
-                project_id_input = st.text_input("Firebase Project ID (para Firestore)")
+                default_key = st.secrets["FIREBASE_API_KEY"] if "FIREBASE_API_KEY" in st.secrets else ""
+                default_proj = st.secrets["FIREBASE_PROJECT_ID"] if "FIREBASE_PROJECT_ID" in st.secrets else ""
+                api_key_input = st.text_input("Firebase Web API Key", value=default_key, type="password")
+                project_id_input = st.text_input("Firebase Project ID (para Firestore)", value=default_proj)
 
             with aba_login:
                 email_login = st.text_input("E-mail", key="email_l")
@@ -191,27 +197,7 @@ if pagina == "🔌 Simulador Elétrico":
                     <text x="485" y="68" fill="white" font-size="13" text-anchor="middle" font-weight="bold">A</text>
                     <text x="485" y="84" fill="{cor_fluxo}" font-size="11" text-anchor="middle" font-weight="bold">{corrente:.2f}A</text>
                     <text x="280" y="205" fill="{cor_fluxo}" font-size="15" text-anchor="middle" font-weight="bold">
-                        {corrente:.2f} A — RISCO {rel.get('risco')}
-                    </text>
-                </svg>
-            </div>
-            """
-            st.markdown(svg_circuito, unsafe_allow_html=True)
-                        cor_fluxo = "#00FF88" if corrente < 10 else ("#FFAA00" if corrente < 20 else "#FF3333")
-            svg_circuito = f"""
-            <div style="background-color:#000000; padding:20px; border-radius:10px; border:1px solid #334455; text-align:center;">
-                <h4 style="color:white; margin-bottom:15px;">SIMULAÇÃO ELÉTRICA</h4>
-                <svg width="100%" height="220" viewBox="0 0 560 220">
-                    <polyline points="90,70 210,70" fill="none" stroke="{cor_fluxo}" stroke-width="4"/>
-                    <polyline points="330,70 460,70" fill="none" stroke="{cor_fluxo}" stroke-width="4"/>
-                    <polyline points="485,95 485,170 65,170 65,95" fill="none" stroke="{cor_fluxo}" stroke-width="4"/>
-                    <text x="65" y="67" fill="white" font-size="11" text-anchor="middle" font-weight="bold">FONTE</text>
-                    <text x="65" y="84" fill="#00FF88" font-size="12" text-anchor="middle" font-weight="bold">{tensao:g} V</text>
-                    <text x="270" y="75" fill="white" font-size="13" text-anchor="middle" font-weight="bold">CARGA ({resistencia:g}Ω)</text>
-                    <text x="485" y="68" fill="white" font-size="13" text-anchor="middle" font-weight="bold">A</text>
-                    <text x="485" y="84" fill="{cor_fluxo}" font-size="11" text-anchor="middle" font-weight="bold">{corrente:.2f}A</text>
-                    <text x="280" y="205" fill="{cor_fluxo}" font-size="15" text-anchor="middle" font-weight="bold">
-                        {corrente:.2f} A — RISCO {rel.get('risco')}
+                                            {corrente:.2f} A — RISCO {rel.get('risco')}
                     </text>
                 </svg>
             </div>
@@ -266,7 +252,7 @@ elif pagina == "🎓 Laboratório Acadêmico (Sistemas Lineares)":
 
     if st.button("🔄 Resolver e Comparar Métodos", type="primary", use_container_width=True):
         A = np.array([linha[:3] for linha in entradas_grid], dtype=float)
-        b = np.array([linha[3] for linha in entradas_grid], dtype=float)
+        b = np.array([linha for linha in entradas_grid], dtype=float)
 
         try:
             t0 = time.perf_counter()
