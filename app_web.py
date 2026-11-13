@@ -284,6 +284,29 @@ elif pagina == "🎓 Laboratório Acadêmico (Sistemas Lineares)":
             }
             st.table(tabela_comp)
 
+            st.subheader("3. Análise Comparativa (Velocidade, Erro e Convergência)")
+            if conv_jac and conv_gs:
+                ganho = ((it_jac - it_gs) / it_jac * 100) if it_jac > 0 else 0
+                st.success(
+                    f"**Convergência Confirmada:** Ambos os métodos atingiram a solução exata. "
+                    f"O **Método de Gauss-Seidel** foi mais rápido, convergindo em **{it_gs} iterações** ({tempo_gs:.4f} ms) "
+                    f"contra **{it_jac} iterações** ({tempo_jac:.4f} ms) do **Método de Jacobi** — uma redução de **{ganho:.1f}%** no esforço iterativo."
+                )
+            else:
+                st.warning(
+                    "**Divergência Detectada:** Na ordem atual das equações, a matriz A não é diagonalmente dominante "
+                    f"e não atende ao Critério de Sassenfeld (β = {beta_max:.2f} ≥ 1). Por isso, o erro cresce a cada iteração "
+                    "(embora o erro de Gauss-Seidel cresça em ritmo menor que o de Jacobi)."
+                )
+
+            st.info(
+                "**Diferença Estrutural entre os Métodos (Item 3):**\n\n"
+                "• **Método de Jacobi (Atualização Simultânea):** Utiliza exclusivamente os valores da iteração anterior (k) "
+                "para calcular toda a nova iteração (k+1), exigindo mais memória e mais passos.\n\n"
+                "• **Método de Gauss-Seidel (Atualização Sequencial):** Reutiliza imediatamente cada variável recém-calculada "
+                "dentro da própria iteração, acelerando a convergência e reduzindo o erro mais rapidamente."
+            )
+
             tab_j, tab_g = st.tabs(("📜 Histórico Jacobi", "📜 Histórico Gauss-Seidel"))
             with tab_j:
                 for k, vals, err in hist_jac[:20]:
@@ -294,5 +317,6 @@ elif pagina == "🎓 Laboratório Acadêmico (Sistemas Lineares)":
 
         except np.linalg.LinAlgError:
             st.error("A matriz A informada é singular (determinante zero) e não possui solução única.")
+
 
 
