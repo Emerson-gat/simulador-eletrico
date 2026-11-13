@@ -11,8 +11,8 @@ from calculos import calcular_corrente, calcular_potencia
 from biblioteca_equipamentos import equipamentos
 from instalacoes_reais import relatorio_instalacao
 from explicacoes_didaticas import gerar_aula
-from modulo_jacobi import executar_jacobi
-from modulo_gauss_seidel import executar_gauss_seidel
+from atividade_pratica_uninter import executar_jacobi
+from atividade_pratica_uninter import executar_gauss_seidel
 from estado_sistema import formatar_equacoes, analisar_criterios_convergencia
 
 st.set_page_config(
@@ -294,3 +294,4 @@ elif pagina == "🎓 Laboratório Acadêmico (Sistemas Lineares)":
 
         except np.linalg.LinAlgError:
             st.error("A matriz A informada é singular (determinante zero) e não possui solução única.")
+
