@@ -252,7 +252,7 @@ elif pagina == "🎓 Laboratório Acadêmico (Sistemas Lineares)":
 
     if st.button("🔄 Resolver e Comparar Métodos", type="primary", use_container_width=True):
         A = np.array([linha[:3] for linha in entradas_grid], dtype=float)
-        b = np.array([linha for linha in entradas_grid], dtype=float)
+        b = np.array([linha[-1] for linha in entradas_grid], dtype=float)
 
         try:
             t0 = time.perf_counter()
@@ -294,4 +294,5 @@ elif pagina == "🎓 Laboratório Acadêmico (Sistemas Lineares)":
 
         except np.linalg.LinAlgError:
             st.error("A matriz A informada é singular (determinante zero) e não possui solução única.")
+
 
